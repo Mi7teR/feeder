@@ -15,12 +15,27 @@ func RunServer(token string) error {
 	if err != nil {
 		return fmt.Errorf("error creating Discord session: %w", err)
 	}
+
+	oldCommands, err := s.ApplicationCommands(s.State.User.ID, "")
+	if err != nil {
+		return fmt.Errorf("error getting commands: %w", err)
+	}
+
+	for _, v := range oldCommands {
+		err = s.ApplicationCommandDelete(s.State.User.ID, "", v.ID)
+		if err != nil {
+			return fmt.Errorf("error deleting command: %w", err)
+		}
+	}
+
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		commands.AddFeed(s, i)
 	})
+
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Println("Bot is up!")
 	})
+
 	err = s.Open()
 	if err != nil {
 		return fmt.Errorf("error opening Discord session: %w", err)
@@ -44,16 +59,5 @@ func RunServer(token string) error {
 	signal.Notify(stop, os.Interrupt)
 	<-stop
 	log.Println("Gracefully shutdown")
-	oldCommands, err := s.ApplicationCommands(s.State.User.ID, "")
-	if err != nil {
-		return fmt.Errorf("error getting commands: %w", err)
-	}
-
-	for _, v := range oldCommands {
-		err = s.ApplicationCommandDelete(s.State.User.ID, "", v.ID)
-		if err != nil {
-			return fmt.Errorf("error deleting command: %w", err)
-		}
-	}
 	return nil
 }
