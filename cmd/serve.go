@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
 
+	"github.com/Mi7teR/feeder/discord"
 	"github.com/spf13/cobra"
 )
 
@@ -17,10 +18,18 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("serve called")
+		token, err := cmd.Flags().GetString("token")
+		if err != nil {
+			log.Fatalln(err)
+		}
+		err = discord.RunServer(token)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(serveCmd)
+	serveCmd.Flags().String("token", "", "Discord bot token")
 }
